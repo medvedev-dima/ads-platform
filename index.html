@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>MVP калькулятор аудитории</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <main class="layout">
+        <div class="main-col">
+        <section class="panel panel-input">
+          <div class="panel-header-with-icon">
+            <img
+              src="/Users/dmitrymedvedev/.cursor/projects/Users-dmitrymedvedev-Desktop-Project-1/assets/image-476f0c74-826e-459f-b69f-9b8a66549dcc.png"
+              alt=""
+              class="forecast-icon-large"
+            />
+            <h2 class="panel-title">Настройка аудитории</h2>
+          </div>
+
+          <div class="section-title">Регионы показа</div>
+          <div class="field-group geo-field-group">
+            <div class="geo-hint-block" id="geo-hint-block">
+              <div class="geo-hint-title">Быстрый выбор</div>
+              <div class="geo-hint-sub">Можно указать несколько регионов</div>
+              <div class="geo-presets" id="geo-presets">
+                <button type="button" class="geo-preset-btn" data-geo-preset="russia">Россия</button>
+                <button type="button" class="geo-preset-btn" data-geo-preset="moscow">Москва</button>
+                <button type="button" class="geo-preset-btn" data-geo-preset="spb">Санкт-Петербург</button>
+              </div>
+            </div>
+            <div class="geo-selected-block" id="geo-selected-block" hidden>
+              <div class="geo-regions-row">
+                <span class="geo-regions-count" id="geo-regions-count"></span>
+                <button type="button" class="geo-regions-reset" id="geo-regions-reset" hidden>Сбросить</button>
+              </div>
+              <div class="geo-chips" id="geo-chips"></div>
+            </div>
+            <div class="geo-search-wrapper">
+              <div class="geo-input-inner">
+                <input type="text" id="geo-search" class="geo-search-input" placeholder="Выберите регион" autocomplete="off" />
+                <button type="button" class="geo-clear-btn" id="geo-clear-btn" hidden aria-label="Очистить">×</button>
+              </div>
+              <div class="geo-dropdown" id="geo-dropdown" hidden></div>
+              <div class="geo-russia-hint" id="geo-russia-hint" hidden>Выбрана Россия. Чтобы выбрать регионы, снимите Россию.</div>
+            </div>
+          </div>
+
+          <div class="section-title">Период рекламной кампании</div>
+          <div class="field-group">
+            <div class="date-row">
+              <div class="date-field">
+                <label class="date-label" for="date-start">Дата начала</label>
+                <div class="date-input-inner">
+                  <input type="text" id="date-start" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
+                  <button type="button" class="date-clear-btn" id="date-start-clear" hidden aria-label="Очистить">×</button>
+                </div>
+                <span class="date-error" id="date-start-error"></span>
+              </div>
+              <div class="date-field">
+                <label class="date-label" for="date-end">Дата окончания</label>
+                <div class="date-input-inner">
+                  <input type="text" id="date-end" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
+                  <button type="button" class="date-clear-btn" id="date-end-clear" hidden aria-label="Очистить">×</button>
+                </div>
+                <span class="date-error" id="date-end-error"></span>
+              </div>
+            </div>
+            <div class="date-duration" id="date-duration">
+              <span class="date-duration-text"></span>
+            </div>
+          </div>
+
+          <div class="section-title section-title--secondary">Платформа устройств</div>
+          <div class="field-group field-group--secondary">
+            <div class="segmented" id="platform-group">
+              <button type="button" class="segmented-item" data-platform="ios">iOS</button>
+              <button type="button" class="segmented-item" data-platform="android">Android</button>
+            </div>
+          </div>
+
+          <div class="section-title">Покупательское поведение</div>
+          <div class="field-group behavior-field-group">
+            <div class="behavior-sub-row">
+              <span class="behavior-sub">Покупки за последние 90 дней</span>
+              <button type="button" class="behavior-reset" id="behavior-reset" hidden>Сбросить</button>
+            </div>
+            <div class="behavior-grid" id="behavior-grid"></div>
+          </div>
+
+          <div class="section-title">Демография</div>
+          <div class="field-group demo-field-group">
+            <div class="demo-grid">
+              <div class="demo-col">
+                <div class="field-label">Пол</div>
+                <div class="social-tiles social-tiles-single" id="gender-group">
+                  <button type="button" class="social-tile" data-gender="male">Мужчины</button>
+                  <button type="button" class="social-tile" data-gender="female">Женщины</button>
+                </div>
+              </div>
+              <div class="demo-col demo-col-divider">
+                <div class="field-label">Возраст</div>
+                <div class="age-presets" id="age-presets">
+                  <button type="button" class="age-preset" data-age-preset="18-24">18–24</button>
+                  <button type="button" class="age-preset" data-age-preset="25-44">25–44</button>
+                  <button type="button" class="age-preset" data-age-preset="45+">45+</button>
+                </div>
+                <div class="age-manual">
+                  <label class="age-manual-label">От</label>
+                  <select id="age-from" class="age-select"></select>
+                  <label class="age-manual-label">До</label>
+                  <select id="age-to" class="age-select"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title section-title--social">Социальные характеристики</div>
+          <div class="field-group social-field-group">
+            <button type="button" class="social-reset" id="social-reset" hidden>Сбросить</button>
+            <div class="social-grid">
+              <div class="social-cell">
+                <div class="social-cell-label">Семейное положение</div>
+                <div class="social-tiles social-tiles-single" id="social-marriage">
+                  <button type="button" class="social-tile" data-social-marriage="married">В браке</button>
+                  <button type="button" class="social-tile" data-social-marriage="single">Не в браке</button>
+                </div>
+              </div>
+              <div class="social-cell">
+                <div class="social-cell-label">Дети</div>
+                <div class="social-tiles social-tiles-single" id="social-kids">
+                  <button type="button" class="social-tile" data-social-kids="yes">Есть дети до 16</button>
+                  <button type="button" class="social-tile" data-social-kids="no">Нет детей</button>
+                </div>
+              </div>
+              <div class="social-cell">
+                <div class="social-cell-label">Доход</div>
+                <div class="social-cell-sub">Оценка на основе платёжной активности</div>
+                <div class="social-tiles social-tiles-multi" id="social-income">
+                  <button type="button" class="social-tile" data-social-income="low">Ниже</button>
+                  <button type="button" class="social-tile" data-social-income="mid">Сред</button>
+                  <button type="button" class="social-tile" data-social-income="high">Выше</button>
+                  <button type="button" class="social-tile" data-social-income="top">Выс</button>
+                </div>
+              </div>
+              <div class="social-cell social-cell--secondary">
+                <div class="social-cell-label social-cell-label--secondary">Специальная занятость</div>
+                <div class="social-tiles">
+                  <button type="button" class="social-toggle social-tile" id="social-selfemployed" data-social-toggle="selfemployed">Самозанятые / фриланс</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        </div>
+
+        <aside class="side-col">
+          <section class="panel panel-output panel-forecast forecast-sticky" id="panel-forecast">
+            <h2 class="panel-title panel-forecast__title">Прогноз</h2>
+
+            <div class="forecast-metrics">
+              <div class="forecast-metric forecast-metric--primary">
+                <span class="forecast-metric__label">Показы</span>
+                <span class="forecast-metric__value" id="impressions-range"></span>
+                <span class="forecast-metric__sub">Общее число показов</span>
+              </div>
+              <div class="forecast-metric forecast-metric--secondary">
+                <span class="forecast-metric__label">Клики</span>
+                <span class="forecast-metric__value" id="clicks-range"></span>
+                <span class="forecast-metric__sub">Приблизительное количество переходов</span>
+              </div>
+            </div>
+
+            <div class="audience-plaque">
+              <span class="audience-plaque__icon">✓</span>
+              <span class="audience-plaque__text">Аудитория <span id="audience-size"></span> человек</span>
+            </div>
+
+            <div class="panel-forecast__footer">Прогноз носит ознакомительный характер</div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
