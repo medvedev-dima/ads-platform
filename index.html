@@ -19,6 +19,37 @@
             />
             <h2 class="panel-title">Настройка аудитории</h2>
           </div>
+          <div class="section-title section-title--campaign">Название кампании</div>
+          <div class="field-group field-group--campaign">
+            <input type="text" id="campaign-name" class="campaign-name-input" placeholder="Например: Ипотека · Москва · весна 2026" autocomplete="off" />
+            <p class="helper-text" id="empty-state-campaign">Название поможет сохранить и сравнивать расчёты</p>
+          </div>
+
+          <div class="section-title">Период рекламной кампании</div>
+          <div class="field-group">
+            <div class="date-row">
+              <div class="date-field">
+                <label class="date-label" for="date-start">Дата начала</label>
+                <div class="date-input-inner">
+                  <input type="text" id="date-start" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
+                  <button type="button" class="date-clear-btn" id="date-start-clear" hidden aria-label="Очистить">×</button>
+                </div>
+                <span class="date-error" id="date-start-error"></span>
+              </div>
+              <div class="date-field">
+                <label class="date-label" for="date-end">Дата окончания</label>
+                <div class="date-input-inner">
+                  <input type="text" id="date-end" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
+                  <button type="button" class="date-clear-btn" id="date-end-clear" hidden aria-label="Очистить">×</button>
+                </div>
+                <span class="date-error" id="date-end-error"></span>
+              </div>
+              <div class="date-duration" id="date-duration">
+                <span class="date-duration-text"></span>
+              </div>
+            </div>
+            <p class="helper-text">Длительность кампании влияет на общее число показов</p>
+          </div>
 
           <div class="section-title">Регионы показа</div>
           <div class="field-group geo-field-group">
@@ -44,37 +75,17 @@
                 <button type="button" class="geo-clear-btn" id="geo-clear-btn" hidden aria-label="Очистить">×</button>
               </div>
               <div class="geo-dropdown" id="geo-dropdown" hidden></div>
-              <div class="geo-russia-hint" id="geo-russia-hint" hidden>Выбрана Россия. Чтобы выбрать регионы, снимите Россию.</div>
-            </div>
-          </div>
-
-          <div class="section-title">Период рекламной кампании</div>
-          <div class="field-group">
-            <div class="date-row">
-              <div class="date-field">
-                <label class="date-label" for="date-start">Дата начала</label>
-                <div class="date-input-inner">
-                  <input type="text" id="date-start" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
-                  <button type="button" class="date-clear-btn" id="date-start-clear" hidden aria-label="Очистить">×</button>
-                </div>
-                <span class="date-error" id="date-start-error"></span>
+              <div class="geo-russia-hint" id="geo-russia-hint" hidden>Выбрана Россия. Чтобы выбрать регионы, снимите Россию</div>
+              <div class="geo-helper-slot" id="geo-helper-slot">
+                <p class="helper-text geo-helper" id="empty-state-regions">Регион обязателен для расчёта прогноза</p>
+                <p class="helper-text geo-helper geo-helper--russia" id="empty-state-regions-russia">Можно уточнить регионы, чтобы сузить аудиторию</p>
               </div>
-              <div class="date-field">
-                <label class="date-label" for="date-end">Дата окончания</label>
-                <div class="date-input-inner">
-                  <input type="text" id="date-end" class="date-input" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" autocomplete="off" />
-                  <button type="button" class="date-clear-btn" id="date-end-clear" hidden aria-label="Очистить">×</button>
-                </div>
-                <span class="date-error" id="date-end-error"></span>
-              </div>
-            </div>
-            <div class="date-duration" id="date-duration">
-              <span class="date-duration-text"></span>
             </div>
           </div>
 
           <div class="section-title section-title--secondary">Платформа устройств</div>
           <div class="field-group field-group--secondary">
+            <p class="helper-text helper-text--inline" id="empty-state-platform">Если не выбрано — реклама будет показана на всех устройствах</p>
             <div class="segmented" id="platform-group">
               <button type="button" class="segmented-item" data-platform="ios">iOS</button>
               <button type="button" class="segmented-item" data-platform="android">Android</button>
@@ -83,74 +94,190 @@
 
           <div class="section-title">Покупательское поведение</div>
           <div class="field-group behavior-field-group">
-            <div class="behavior-sub-row">
-              <span class="behavior-sub">Покупки за последние 90 дней</span>
-              <button type="button" class="behavior-reset" id="behavior-reset" hidden>Сбросить</button>
+            <div class="behavior-block behavior-block--period">
+              <div class="behavior-block-header">
+                <h3 class="behavior-block-title">Период данных</h3>
+                <span class="behavior-block-helper">Короткий период — точнее, длинный — шире</span>
+              </div>
+              <div class="behavior-period-controls">
+                <div class="behavior-period-pills" id="behavior-period-group" role="radiogroup" aria-label="Период данных">
+                  <button type="button" class="behavior-period-btn" role="radio" aria-checked="false" data-period="30">30 дней</button>
+                  <button type="button" class="behavior-period-btn" role="radio" aria-checked="true" data-period="90">90 дней</button>
+                  <button type="button" class="behavior-period-btn" role="radio" aria-checked="false" data-period="180">180 дней</button>
+                  <button type="button" class="behavior-period-btn" role="radio" aria-checked="false" data-period="365">365 дней</button>
+                </div>
+                <div class="behavior-period-other-wrap">
+                  <select id="behavior-period-other" class="behavior-period-other" aria-label="Другой период">
+                    <option value="">Другой период</option>
+                    <option value="10">10 дней</option>
+                    <option value="20">20 дней</option>
+                    <option value="60">60 дней</option>
+                    <option value="120">120 дней</option>
+                  </select>
+                </div>
+              </div>
+              <div class="behavior-period-warning-slot" aria-live="polite">
+                <p class="behavior-period-warning" id="behavior-period-warning">
+                  <span class="behavior-period-warning__main">Короткий период может значительно сократить аудиторию</span>
+                  <span class="behavior-period-warning__sub">Рекомендуем 60–90 дней для стабильного прогноза</span>
+                </p>
+              </div>
             </div>
-            <div class="behavior-grid" id="behavior-grid"></div>
-          </div>
-
-          <div class="section-title">Демография</div>
-          <div class="field-group demo-field-group">
-            <div class="demo-grid">
-              <div class="demo-col">
-                <div class="field-label">Пол</div>
-                <div class="social-tiles social-tiles-single" id="gender-group">
-                  <button type="button" class="social-tile" data-gender="male">Мужчины</button>
-                  <button type="button" class="social-tile" data-gender="female">Женщины</button>
+            <div class="behavior-divider"></div>
+            <div class="behavior-block behavior-block--categories">
+              <div class="behavior-block-header behavior-block-header--categories">
+                <div class="behavior-block-title-row">
+                  <h3 class="behavior-block-title">Категории покупок</h3>
+                  <span class="behavior-category-count" id="behavior-category-count">Выбрано: 0</span>
                 </div>
+                <span class="behavior-block-helper">Можно выбрать несколько</span>
+                <button type="button" class="behavior-reset" id="behavior-reset" hidden>Сбросить</button>
               </div>
-              <div class="demo-col demo-col-divider">
-                <div class="field-label">Возраст</div>
-                <div class="age-presets" id="age-presets">
-                  <button type="button" class="age-preset" data-age-preset="18-24">18–24</button>
-                  <button type="button" class="age-preset" data-age-preset="25-44">25–44</button>
-                  <button type="button" class="age-preset" data-age-preset="45+">45+</button>
-                </div>
-                <div class="age-manual">
-                  <label class="age-manual-label">От</label>
-                  <select id="age-from" class="age-select"></select>
-                  <label class="age-manual-label">До</label>
-                  <select id="age-to" class="age-select"></select>
-                </div>
-              </div>
+              <p class="behavior-empty-caption" id="behavior-empty-caption">Учитываются все категории покупок</p>
+              <div class="behavior-grid" id="behavior-grid" role="group" aria-label="Категории покупок"></div>
             </div>
           </div>
 
           <div class="section-title section-title--social">Социальные характеристики</div>
           <div class="field-group social-field-group">
             <button type="button" class="social-reset" id="social-reset" hidden>Сбросить</button>
-            <div class="social-grid">
-              <div class="social-cell">
-                <div class="social-cell-label">Семейное положение</div>
-                <div class="social-tiles social-tiles-single" id="social-marriage">
-                  <button type="button" class="social-tile" data-social-marriage="married">В браке</button>
-                  <button type="button" class="social-tile" data-social-marriage="single">Не в браке</button>
+            <div class="social-two-col">
+              <div class="social-col social-col--demography">
+                <div class="social-col-title">Демография</div>
+                <p class="helper-text helper-text--social" id="empty-state-demo">Если параметры не указаны, используется базовый профиль аудитории</p>
+                <div class="social-demo-level social-demo-level--1">
+                  <div class="social-col-block">
+                    <div class="field-label">Пол</div>
+                    <span class="field-hint">Выберите один</span>
+                    <div class="social-tiles social-tiles-single" id="gender-group">
+                      <button type="button" class="social-tile" data-gender="male">Мужчины</button>
+                      <button type="button" class="social-tile" data-gender="female">Женщины</button>
+                    </div>
+                  </div>
+                  <div class="social-col-block">
+                    <div class="field-label">Возраст</div>
+                    <div class="age-presets" id="age-presets">
+                      <button type="button" class="age-preset" data-age-preset="18-24">18–24</button>
+                      <button type="button" class="age-preset" data-age-preset="25-44">25–44</button>
+                      <button type="button" class="age-preset" data-age-preset="45+">45+</button>
+                    </div>
+                    <div class="age-manual">
+                      <label class="age-manual-label">От</label>
+                      <select id="age-from" class="age-select"></select>
+                      <label class="age-manual-label">До</label>
+                      <select id="age-to" class="age-select"></select>
+                    </div>
+                  </div>
+                </div>
+                <div class="social-demo-level social-demo-level--2">
+                  <div class="social-col-block">
+                    <div class="social-cell-label">Семейное положение</div>
+                    <span class="field-hint">Выберите один</span>
+                    <div class="social-tiles social-tiles-single" id="social-marriage">
+                      <button type="button" class="social-tile" data-social-marriage="married">В браке</button>
+                      <button type="button" class="social-tile" data-social-marriage="single">Не в браке</button>
+                    </div>
+                  </div>
+                  <div class="social-col-block social-col-block--kids">
+                  <div class="social-cell-label">Дети</div>
+                  <span class="field-hint">Выберите один</span>
+                  <div class="social-tiles social-tiles-single" id="social-kids">
+                    <button type="button" class="social-tile" data-social-kids="yes">Есть дети до 16</button>
+                    <button type="button" class="social-tile" data-social-kids="no">Нет детей</button>
+                  </div>
+                  <div class="child-age-block" id="child-age-block" aria-disabled="true">
+                    <div class="child-age-header">
+                      <span class="child-age-label">Возраст детей</span>
+                      <span class="child-age-hint" id="child-age-hint">Доступно при выборе «Есть дети до 16»</span>
+                    </div>
+                    <div class="social-cell-sub child-age-sub">Можно выбрать несколько</div>
+                    <div class="social-tiles social-tiles-multi child-age-tiles" id="child-age-group">
+                      <button type="button" class="social-tile" data-child-age="0-3">0–3 года</button>
+                      <button type="button" class="social-tile" data-child-age="4-6">4–6 лет</button>
+                      <button type="button" class="social-tile" data-child-age="7-12">7–12 лет</button>
+                      <button type="button" class="social-tile" data-child-age="13-16">13–16 лет</button>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+                <div class="social-demo-level social-demo-level--3">
+                  <div class="social-col-block">
+                    <div class="social-cell-label social-cell-label--secondary">Специальная занятость</div>
+                  <div class="social-tiles">
+                    <button type="button" class="social-toggle social-tile" id="social-selfemployed" data-social-toggle="selfemployed">Самозанятые / фриланс</button>
+                  </div>
+                  </div>
                 </div>
               </div>
-              <div class="social-cell">
-                <div class="social-cell-label">Дети</div>
-                <div class="social-tiles social-tiles-single" id="social-kids">
-                  <button type="button" class="social-tile" data-social-kids="yes">Есть дети до 16</button>
-                  <button type="button" class="social-tile" data-social-kids="no">Нет детей</button>
+              <div class="social-col social-col--finance">
+                <div class="social-col-title">Финансовый профиль</div>
+                <p class="helper-text helper-text--social" id="empty-state-usertype">Если параметры не указаны, используется базовый профиль аудитории</p>
+                <div class="social-col-block">
+                  <div class="social-cell-label">Тип пользователя</div>
+                  <span class="field-hint">Выберите один</span>
+                  <div class="social-tiles social-tiles-single" id="user-type-group">
+                    <button type="button" class="social-tile" data-user-type="mass">Массовый</button>
+                    <button type="button" class="social-tile" data-user-type="affluent">Премиум</button>
+                  </div>
+                </div>
+                <div class="social-col-block">
+                  <div class="social-cell-label">Доход</div>
+                  <div class="social-cell-sub">Оценка на основе платёжной активности клиентов. Можно выбрать несколько</div>
+                  <div class="social-tiles social-tiles-multi" id="social-income">
+                    <button type="button" class="social-tile" data-social-income="low">Ниже</button>
+                    <button type="button" class="social-tile" data-social-income="mid">Сред</button>
+                    <button type="button" class="social-tile" data-social-income="high">Выше</button>
+                    <button type="button" class="social-tile" data-social-income="top">Выс</button>
+                  </div>
+                </div>
+                <div class="social-col-block social-col-block--bank">
+                  <div class="bank-products-header">
+                    <span class="social-cell-label">Банковские продукты</span>
+                    <button type="button" class="bank-products-reset" id="bank-products-reset" hidden>Сбросить</button>
+                  </div>
+                  <div class="social-cell-sub bank-products-sub" id="bank-products-sub">Можно выбрать продукты, которыми уже пользуется клиент. Чем больше продуктов выбрано — тем уже сегмент</div>
+                  <div class="social-tiles social-tiles-multi bank-products-tiles" id="bank-products-group"></div>
                 </div>
               </div>
-              <div class="social-cell">
-                <div class="social-cell-label">Доход</div>
-                <div class="social-cell-sub">Оценка на основе платёжной активности</div>
-                <div class="social-tiles social-tiles-multi" id="social-income">
-                  <button type="button" class="social-tile" data-social-income="low">Ниже</button>
-                  <button type="button" class="social-tile" data-social-income="mid">Сред</button>
-                  <button type="button" class="social-tile" data-social-income="high">Выше</button>
-                  <button type="button" class="social-tile" data-social-income="top">Выс</button>
-                </div>
+            </div>
+          </div>
+
+          <div class="section-title">Подготовка медиаплана</div>
+          <div class="field-group mediaplan-field-group">
+            <p class="helper-text" id="empty-state-mediaplan">Медиаплан можно заполнить позже — прогноз аудитории считается без него</p>
+            <p class="helper-text mediaplan-helper" id="mediaplan-selector-hint">Выберите плейсменты и укажите плановые показы — бюджет и клики посчитаем автоматически</p>
+            <div class="mediaplan-budget-row">
+              <label class="mediaplan-budget-label" for="mediaplan-budget-input">Планируемый бюджет кампании</label>
+              <div class="mediaplan-budget-input-wrap">
+                <input type="text" inputmode="numeric" id="mediaplan-budget-input" class="mediaplan-budget-input" placeholder="" aria-label="Планируемый бюджет кампании в рублях" />
+                <span class="mediaplan-budget-currency">₽</span>
               </div>
-              <div class="social-cell social-cell--secondary">
-                <div class="social-cell-label social-cell-label--secondary">Специальная занятость</div>
-                <div class="social-tiles">
-                  <button type="button" class="social-toggle social-tile" id="social-selfemployed" data-social-toggle="selfemployed">Самозанятые / фриланс</button>
-                </div>
-              </div>
+            </div>
+            <div class="mediaplan-budget-check" id="mediaplan-budget-check" aria-live="polite" hidden></div>
+            <div class="mediaplan-toolbar">
+              <button type="button" class="mediaplan-distribute-btn" id="mediaplan-distribute-by-impressions-btn" disabled>Распределить по показам</button>
+              <button type="button" class="mediaplan-distribute-btn" id="mediaplan-distribute-by-cost-btn" disabled>Распределить по стоимости</button>
+            </div>
+            <div class="mediaplan-table-wrap">
+              <table class="mediaplan-table">
+                <thead>
+                  <tr>
+                    <th class="mediaplan-th mediaplan-th-name">Плейсмент</th>
+                    <th class="mediaplan-th mediaplan-th-impressions">Показы</th>
+                    <th class="mediaplan-th mediaplan-th-cpm">CPM, ₽/1000</th>
+                    <th class="mediaplan-th mediaplan-th-cr">CR, %</th>
+                    <th class="mediaplan-th mediaplan-th-clicks">Ожидаемые клики</th>
+                    <th class="mediaplan-th mediaplan-th-cost">Стоимость</th>
+                  </tr>
+                </thead>
+                <tbody id="mediaplan-tbody"></tbody>
+              </table>
+            </div>
+            <div class="mediaplan-totals mediaplan-totals--copyable" id="mediaplan-totals" tabindex="0" title="Выделите и скопируйте">
+              <span id="mediaplan-totals-text"></span>
+            </div>
+            <div class="mediaplan-actions">
+              <button type="button" class="mediaplan-save-btn" id="mediaplan-save-btn">Сохранить расчёт</button>
             </div>
           </div>
         </section>
@@ -160,24 +287,32 @@
           <section class="panel panel-output panel-forecast forecast-sticky" id="panel-forecast">
             <h2 class="panel-title panel-forecast__title">Прогноз</h2>
 
-            <div class="forecast-metrics">
-              <div class="forecast-metric forecast-metric--primary">
-                <span class="forecast-metric__label">Показы</span>
-                <span class="forecast-metric__value" id="impressions-range"></span>
-                <span class="forecast-metric__sub">Общее число показов</span>
+            <div class="forecast-body">
+            <div class="forecast-content" id="forecast-content">
+              <div class="forecast-metrics">
+                <div class="forecast-metric forecast-metric--primary">
+                  <span class="forecast-metric__label">Показы</span>
+                  <span class="forecast-metric__value" id="impressions-range"></span>
+                  <span class="forecast-metric__sub">Общее число показов</span>
+                </div>
+                <div class="forecast-metric forecast-metric--secondary">
+                  <span class="forecast-metric__label">Клики</span>
+                  <span class="forecast-metric__value" id="clicks-range"></span>
+                  <span class="forecast-metric__sub">Приблизительное количество переходов</span>
+                </div>
               </div>
-              <div class="forecast-metric forecast-metric--secondary">
-                <span class="forecast-metric__label">Клики</span>
-                <span class="forecast-metric__value" id="clicks-range"></span>
-                <span class="forecast-metric__sub">Приблизительное количество переходов</span>
+
+                <div class="audience-summary">
+                <span class="audience-summary__text">Аудитория <span id="audience-size"></span> человек</span>
               </div>
             </div>
-
-            <div class="audience-plaque">
-              <span class="audience-plaque__icon">✓</span>
-              <span class="audience-plaque__text">Аудитория <span id="audience-size"></span> человек</span>
+            <p class="forecast-empty-message" id="forecast-empty-message">Выберите регион, чтобы увидеть прогноз</p>
             </div>
 
+            <p class="forecast-micro">Регион обязателен. Даты масштабируют объём. Остальное уточняет сегмент</p>
+            <div class="forecast-updated-slot" aria-live="polite">
+              <span class="forecast-updated" id="forecast-updated">Прогноз обновлён</span>
+            </div>
             <div class="panel-forecast__footer">Прогноз носит ознакомительный характер</div>
           </section>
         </aside>
