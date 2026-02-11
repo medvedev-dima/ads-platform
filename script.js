@@ -26,16 +26,14 @@ const PLATFORM_FACTORS = { all: 1, ios: 0.35, android: 0.65 };
 const selectedRegions = new Set();
 const selectedBehavior = new Set();
 
-const BEHAVIOR_PERIOD_OPTIONS = [10, 20, 30, 60, 90, 120, 180, 365];
-const BEHAVIOR_PERIOD_MAIN = [30, 90, 180, 365];
-const BEHAVIOR_PERIOD_EXTRA = [10, 20, 60, 120];
-let behaviorPeriodDays = 90;
+const BEHAVIOR_PERIOD_OPTIONS = [30, 60, 90, 180, 365];
+let behaviorPeriodDays = null;
 
 let socialMarriage = null;
 let socialKids = null;
 const selectedChildAges = new Set(); // key: 0-2 | 3-5 | 6-12 | 13-16
 let selectedGender = null;
-let socialSelfEmployed = false;
+const selectedSpecialEmployment = new Set();
 const selectedIncome = new Set();
 let userType = null; // null | 'mass' | 'affluent'
 const selectedBankProducts = new Set();
@@ -327,14 +325,15 @@ function getSocialNarrowness() {
   let n = 0;
   if (socialMarriage) n++;
   if (socialKids) n++;
-  if (socialSelfEmployed) n++;
+  n += selectedSpecialEmployment.size;
   n += selectedIncome.size;
   return n;
 }
 
 function getBehaviorFactor() {
   const n = selectedBehavior.size;
-  if (n === 0) return { reach: 1, ctrBoost: 0 };
+  const hasPeriod = behaviorPeriodDays != null;
+  if (n === 0 || !hasPeriod) return { reach: 1, ctrBoost: 0 };
   const reachFactor = Math.max(0.5, 1 - n * 0.04);
   const ctrBoost = n * 0.002;
   const days = behaviorPeriodDays || 90;
@@ -424,7 +423,7 @@ function syncEmptyStates() {
   const hasPlatform = ios || android;
   const hasBehavior = selectedBehavior.size > 0;
   const agePresetActive = agePresetsContainer?.querySelector(".age-preset--active");
-  const hasDemo = !!selectedGender || !!agePresetActive || !!socialMarriage || !!socialKids || selectedChildAges.size > 0 || socialSelfEmployed;
+  const hasDemo = !!selectedGender || !!agePresetActive || !!socialMarriage || !!socialKids || selectedChildAges.size > 0 || selectedSpecialEmployment.size > 0;
   const hasUserType = !!userType;
   const hasMediaplanImpressions = PLACEMENTS.some((p) => (placementImpressions[p.key] ?? 0) > 0);
   const hasForecastData = hasRegions;
@@ -460,6 +459,31 @@ function syncEmptyStates() {
   if (mediaplanFieldGroup) mediaplanFieldGroup.classList.toggle("mediaplan-field-group--empty", !hasMediaplanImpressions);
   if (forecastContent) forecastContent.classList.toggle("forecast-content--inactive", !hasForecastData);
   if (forecastEmptyMsg) forecastEmptyMsg.classList.toggle("forecast-empty-message--inactive", hasForecastData);
+  syncSocialDefaultStates();
+}
+
+function syncSocialDefaultStates() {
+  const agePresetActive = agePresetsContainer?.querySelector(".age-preset--active");
+  const ageFrom = parseInt(ageFromSelect?.value || "18", 10);
+  const ageTo = parseInt(ageToSelect?.value || "65", 10);
+  const ageIsDefault = !agePresetActive && ageFrom === 18 && ageTo === 65;
+  const els = {
+    gender: document.getElementById("gender-default-state"),
+    marriage: document.getElementById("marriage-default-state"),
+    kids: document.getElementById("kids-default-state"),
+    age: document.getElementById("age-default-state"),
+    usertype: document.getElementById("usertype-default-state"),
+    income: document.getElementById("income-default-state"),
+    platform: document.getElementById("platform-default-state"),
+  };
+  if (els.gender) els.gender.classList.toggle("social-default-state--hidden", !!selectedGender);
+  if (els.marriage) els.marriage.classList.toggle("social-default-state--hidden", !!socialMarriage);
+  if (els.kids) els.kids.classList.toggle("social-default-state--hidden", !!socialKids);
+  if (els.age) els.age.classList.toggle("social-default-state--hidden", !ageIsDefault);
+  if (els.usertype) els.usertype.classList.toggle("social-default-state--hidden", !!userType);
+  if (els.income) els.income.classList.toggle("social-default-state--hidden", selectedIncome.size > 0);
+  const hasPlatform = platformGroup?.querySelector(".segmented-item--active");
+  if (els.platform) els.platform.classList.toggle("social-default-state--hidden", !!hasPlatform);
 }
 
 function handleChange() {
@@ -591,10 +615,9 @@ function setupDragSelection(options) {
 const behaviorGrid = document.getElementById("behavior-grid");
 const behaviorResetBtn = document.getElementById("behavior-reset");
 const behaviorPeriodGroup = document.getElementById("behavior-period-group");
-const behaviorPeriodOther = document.getElementById("behavior-period-other");
-const behaviorPeriodWarning = document.getElementById("behavior-period-warning");
 const behaviorCategoryCount = document.getElementById("behavior-category-count");
 const behaviorEmptyCaption = document.getElementById("behavior-empty-caption");
+const behaviorValidationMsg = document.getElementById("behavior-validation-msg");
 const forecastUpdatedEl = document.getElementById("forecast-updated");
 
 function syncBehaviorPeriodButtons() {
@@ -604,22 +627,13 @@ function syncBehaviorPeriodButtons() {
     btn.classList.toggle("behavior-period-btn--active", active);
     btn.setAttribute("aria-checked", String(active));
   });
-  if (behaviorPeriodOther) {
-    const v = String(behaviorPeriodDays);
-    behaviorPeriodOther.value = BEHAVIOR_PERIOD_EXTRA.includes(behaviorPeriodDays) ? v : "";
-  }
-}
-
-function syncBehaviorPeriodWarning() {
-  const show = behaviorPeriodDays === 10 || behaviorPeriodDays === 20;
-  behaviorPeriodWarning?.classList.toggle("is-visible", show);
 }
 
 function setBehaviorPeriod(days) {
   if (!BEHAVIOR_PERIOD_OPTIONS.includes(days)) return;
-  behaviorPeriodDays = days;
+  behaviorPeriodDays = behaviorPeriodDays === days ? null : days;
   syncBehaviorPeriodButtons();
-  syncBehaviorPeriodWarning();
+  syncBehaviorValidation();
   const forecastContent = document.getElementById("forecast-content");
   const valueEls = forecastContent?.querySelectorAll(".forecast-metric__value, .audience-summary__text");
   valueEls?.forEach((el) => el.style.opacity = "0.5");
@@ -652,19 +666,23 @@ behaviorPeriodGroup?.addEventListener("keydown", (e) => {
   setBehaviorPeriod(days);
 });
 
-behaviorPeriodOther?.addEventListener("change", () => {
-  const v = behaviorPeriodOther.value;
-  if (v) setBehaviorPeriod(parseInt(v, 10));
-});
-
 syncBehaviorPeriodButtons();
-syncBehaviorPeriodWarning();
 
 function syncBehaviorResetVisibility() {
   const n = selectedBehavior.size;
   if (behaviorResetBtn) behaviorResetBtn.hidden = n === 0;
   if (behaviorCategoryCount) behaviorCategoryCount.textContent = "Выбрано: " + n;
-  if (behaviorEmptyCaption) behaviorEmptyCaption.classList.toggle("behavior-empty-caption--hidden", n > 0);
+  syncBehaviorValidation();
+}
+
+function syncBehaviorValidation() {
+  const hasPeriod = behaviorPeriodDays != null;
+  const hasCategories = selectedBehavior.size > 0;
+  const incomplete = (hasPeriod && !hasCategories) || (!hasPeriod && hasCategories);
+  if (behaviorValidationMsg) behaviorValidationMsg.hidden = !incomplete;
+  if (behaviorEmptyCaption) {
+    behaviorEmptyCaption.classList.toggle("behavior-empty-caption--hidden", hasCategories || incomplete);
+  }
 }
 
 function renderBehaviorTiles() {
@@ -745,7 +763,7 @@ function syncGeoVisibility() {
 function renderGeoChips() {
   if (!geoChipsContainer) return;
   geoChipsContainer.innerHTML = "";
-  const items = isRussiaSelected() ? [GEO_RUSSIA] : Array.from(selectedRegions);
+  const items = isRussiaSelected() ? [GEO_RUSSIA] : Array.from(selectedRegions).sort((a, b) => a.localeCompare(b, "ru"));
   items.forEach((name) => {
     const chip = document.createElement("div");
     chip.className = "geo-chip";
@@ -860,6 +878,29 @@ if (geoClearBtn) {
   });
 }
 
+const GEO_PRESET_MOSCOW_MO = ["Москва", "Московская область"];
+const GEO_PRESET_SPB_LO = ["Санкт-Петербург", "Ленинградская область"];
+const GEO_PRESET_MILLIONNIKI = [
+  "Москва", "Московская область", "Санкт-Петербург", "Ленинградская область",
+  "Новосибирская область", "Свердловская область", "Республика Татарстан", "Красноярский край",
+  "Нижегородская область", "Челябинская область", "Республика Башкортостан", "Краснодарский край",
+  "Самарская область", "Омская область", "Ростовская область", "Воронежская область",
+  "Пермский край", "Волгоградская область"
+];
+
+function getGeoPresetRegions(preset) {
+  if (preset === "moscow_mo") return GEO_PRESET_MOSCOW_MO;
+  if (preset === "spb_lo") return GEO_PRESET_SPB_LO;
+  if (preset === "millionniki") return GEO_PRESET_MILLIONNIKI;
+  return null;
+}
+
+function isGeoPresetActive(preset, regions) {
+  const presetRegions = getGeoPresetRegions(preset);
+  if (!presetRegions || regions.size !== presetRegions.length) return false;
+  return presetRegions.every((r) => regions.has(r));
+}
+
 const geoPresets = document.getElementById("geo-presets");
 function syncGeoPresetActive() {
   geoPresets?.querySelectorAll(".geo-preset-btn").forEach((b) => {
@@ -868,6 +909,7 @@ function syncGeoPresetActive() {
     if (preset === "russia" && isRussiaSelected()) active = true;
     else if (preset === "moscow" && selectedRegions.size === 1 && selectedRegions.has("Москва")) active = true;
     else if (preset === "spb" && selectedRegions.size === 1 && selectedRegions.has("Санкт-Петербург")) active = true;
+    else if (preset === "moscow_mo" || preset === "spb_lo" || preset === "millionniki") active = isGeoPresetActive(preset, selectedRegions);
     b.classList.toggle("geo-preset-btn--active", active);
   });
 }
@@ -885,6 +927,14 @@ if (geoPresets) {
     } else if (preset === "spb") {
       selectedRegions.clear();
       selectedRegions.add("Санкт-Петербург");
+    } else if (preset === "moscow_mo" || preset === "spb_lo" || preset === "millionniki") {
+      const presetRegions = getGeoPresetRegions(preset);
+      if (isGeoPresetActive(preset, selectedRegions)) {
+        presetRegions.forEach((r) => selectedRegions.delete(r));
+      } else {
+        selectedRegions.clear();
+        presetRegions.forEach((r) => selectedRegions.add(r));
+      }
     }
     renderGeoChips();
     syncGeoPresetActive();
@@ -996,7 +1046,7 @@ function isSocialDefault() {
   return (
     !socialMarriage &&
     !socialKids &&
-    !socialSelfEmployed &&
+    selectedSpecialEmployment.size === 0 &&
     selectedIncome.size === 0 &&
     !userType &&
     selectedBankProducts.size === 0
@@ -1080,13 +1130,16 @@ if (childAgeGroup) {
   });
 }
 
-const socialSelfEmployedBtn = document.getElementById("social-selfemployed");
-if (socialSelfEmployedBtn) {
-  socialSelfEmployedBtn.addEventListener("click", () => {
-    socialSelfEmployed = !socialSelfEmployed;
-    socialSelfEmployedBtn.classList.toggle("social-tile--selected", socialSelfEmployed);
-    syncSocialResetVisibility();
-    handleChange();
+const specialEmploymentGroup = document.getElementById("special-employment-group");
+if (specialEmploymentGroup) {
+  setupDragSelection({
+    container: specialEmploymentGroup,
+    tileSelector: "[data-special-employment]",
+    getValue: (t) => t.dataset.specialEmployment,
+    isSelected: (t) => selectedSpecialEmployment.has(t.dataset.specialEmployment),
+    setSelected: (v, on) => { if (on) selectedSpecialEmployment.add(v); else selectedSpecialEmployment.delete(v); },
+    updateTile: (t) => t.classList.toggle("social-tile--selected", selectedSpecialEmployment.has(t.dataset.specialEmployment)),
+    onChanged: () => { syncSocialResetVisibility(); handleChange(); },
   });
 }
 
@@ -1189,7 +1242,7 @@ socialResetBtn?.addEventListener("click", () => {
   socialMarriage = null;
   socialKids = null;
   selectedChildAges.clear();
-  socialSelfEmployed = false;
+  selectedSpecialEmployment.clear();
   selectedIncome.clear();
   userType = null;
   selectedBankProducts.clear();
@@ -1197,7 +1250,7 @@ socialResetBtn?.addEventListener("click", () => {
   socialKidsGroup?.querySelectorAll("[data-social-kids]").forEach((b) => b.classList.remove("social-tile--selected"));
   childAgeBlock?.querySelectorAll("[data-child-age]").forEach((b) => b.classList.remove("social-tile--selected"));
   syncChildAgeBlockVisibility();
-  socialSelfEmployedBtn?.classList.remove("social-tile--selected");
+  specialEmploymentGroup?.querySelectorAll("[data-special-employment]").forEach((b) => b.classList.remove("social-tile--selected"));
   socialIncomeGroup?.querySelectorAll("[data-social-income]").forEach((b) => b.classList.remove("social-tile--selected"));
   userTypeGroup?.querySelectorAll("[data-user-type]").forEach((b) => b.classList.remove("social-tile--selected"));
   bankProductsGroup?.querySelectorAll("[data-bank-product]").forEach((b) => b.classList.remove("social-tile--selected"));
@@ -1242,8 +1295,7 @@ const BUDGET_ROUND = 10000;
 const mediaplanTbody = document.getElementById("mediaplan-tbody");
 const mediaplanBudgetInput = document.getElementById("mediaplan-budget-input");
 const mediaplanBudgetCheck = document.getElementById("mediaplan-budget-check");
-const mediaplanDistributeByImpressionsBtn = document.getElementById("mediaplan-distribute-by-impressions-btn");
-const mediaplanDistributeByCostBtn = document.getElementById("mediaplan-distribute-by-cost-btn");
+const mediaplanDistributeBtn = document.getElementById("mediaplan-distribute-btn");
 
 const MEDIAPLAN_PRESETS = [50000, 100000, 200000];
 
@@ -1276,8 +1328,8 @@ function renderMediaPlanTable() {
       </td>
       <td class="mediaplan-td mediaplan-td-impressions mediaplan-td-impressions--value" data-placement-key="${p.key}">
         ${selected
-          ? `<span class="mediaplan-impressions-value-wrap"><span class="mediaplan-impressions-value">${impressionsDisplay}</span>${autoFromBudget ? '<span class="mediaplan-auto-badge">Авто из бюджета</span>' : ""}</span>`
-          : `<span class="mediaplan-impressions-hint">Выберите плейсмент, чтобы указать показы</span>`
+          ? `<span class="mediaplan-impressions-value-wrap"><span class="mediaplan-impressions-value">${impressionsDisplay}</span></span>`
+          : `<span class="mediaplan-impressions-hint">Выберите плейсмент</span>`
         }
       </td>
       <td class="mediaplan-td mediaplan-td-cpm"><span class="mediaplan-cpm-value">${formatRubles(p.cpm)}</span></td>
@@ -1293,14 +1345,14 @@ function renderMediaPlanTable() {
     subTr.innerHTML = `
       <td colspan="6" class="mediaplan-sub-cell">
         <div class="mediaplan-sub-inner">
-          <span class="mediaplan-sub-label">Задать показы</span>
           <input type="text" inputmode="numeric" class="mediaplan-impressions-input" data-placement-key="${p.key}"
             value="${impressions > 0 ? formatImpressions(impressions) : ""}"
-            aria-label="Задать показы для ${escapeHtml(p.label)}"
+            aria-label="Показы для ${escapeHtml(p.label)}"
             ${selected ? "" : "disabled"} />
           <div class="mediaplan-presets">
             ${MEDIAPLAN_PRESETS.map((v) => `<button type="button" class="mediaplan-preset-btn" data-placement-key="${p.key}" data-value="${v}">${formatImpressions(v)}</button>`).join("")}
           </div>
+          ${selected && impressions > 0 ? (autoFromBudget ? '<span class="mediaplan-input-caption">Рассчитано автоматически</span>' : '<span class="mediaplan-input-caption">Введено вручную</span>') : ""}
         </div>
       </td>
     `;
@@ -1361,24 +1413,24 @@ function syncBudgetCheck() {
     mediaplanBudgetCheck.textContent = "";
     return;
   }
-  mediaplanBudgetCheck.hidden = false;
   const diff = totalCost - budget;
   if (Math.abs(diff) <= 50000) {
-    mediaplanBudgetCheck.textContent = "Проверка: бюджет соблюдён";
-    mediaplanBudgetCheck.className = "mediaplan-budget-check mediaplan-budget-check--ok";
-  } else if (diff > 50000) {
-    mediaplanBudgetCheck.textContent = "Проверка: превышение бюджета на " + formatRubles(diff);
-    mediaplanBudgetCheck.className = "mediaplan-budget-check mediaplan-budget-check--info";
+    mediaplanBudgetCheck.hidden = true;
+    mediaplanBudgetCheck.textContent = "";
+    return;
+  }
+  mediaplanBudgetCheck.hidden = false;
+  mediaplanBudgetCheck.className = "mediaplan-budget-check mediaplan-budget-check--neutral";
+  if (diff > 50000) {
+    mediaplanBudgetCheck.textContent = "Бюджет превышен на " + formatRubles(diff);
   } else {
-    mediaplanBudgetCheck.textContent = "Проверка: недоиспользование бюджета на " + formatRubles(-diff);
-    mediaplanBudgetCheck.className = "mediaplan-budget-check mediaplan-budget-check--info";
+    mediaplanBudgetCheck.textContent = "Не распределено " + formatRubles(-diff);
   }
 }
 
 function syncBudgetDistributeButton() {
   const hasBudget = campaignBudget != null && campaignBudget > 0;
-  if (mediaplanDistributeByImpressionsBtn) mediaplanDistributeByImpressionsBtn.disabled = !hasBudget;
-  if (mediaplanDistributeByCostBtn) mediaplanDistributeByCostBtn.disabled = !hasBudget;
+  if (mediaplanDistributeBtn) mediaplanDistributeBtn.disabled = !hasBudget;
 }
 
 function distributeByImpressions() {
@@ -1488,11 +1540,20 @@ function handleMediaPlanImpressionsInput(e) {
   const inp = e.target;
   const key = inp.dataset.placementKey;
   placementAutoFromBudget.delete(key);
-  const mainRow = inp.closest(".mediaplan-sub-row")?.previousElementSibling;
-  mainRow?.querySelector(".mediaplan-auto-badge")?.remove();
   const val = parseImpressionsFromInput(inp.value);
   placementImpressions[key] = val >= 0 ? val : 0;
   const imp = placementImpressions[key] ?? 0;
+  const subInner = inp.closest(".mediaplan-sub-inner");
+  const cap = subInner?.querySelector(".mediaplan-input-caption");
+  if (imp > 0) {
+    if (cap) cap.textContent = "Введено вручную";
+    else if (subInner) {
+      const newCap = document.createElement("span");
+      newCap.className = "mediaplan-input-caption";
+      newCap.textContent = "Введено вручную";
+      subInner.appendChild(newCap);
+    }
+  } else if (cap) cap.remove();
   const formatted = imp > 0 ? formatImpressions(imp) : "";
   inp.value = formatted;
   inp.setSelectionRange(formatted.length, formatted.length);
@@ -1639,12 +1700,9 @@ mediaplanBudgetInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") e.preventDefault();
 });
 
-mediaplanDistributeByImpressionsBtn?.addEventListener("click", () => {
-  distributeByImpressions();
-});
-
-mediaplanDistributeByCostBtn?.addEventListener("click", () => {
+mediaplanDistributeBtn?.addEventListener("click", () => {
   distributeByCost();
+  syncBudgetCheck();
 });
 
 loadCalculation();
