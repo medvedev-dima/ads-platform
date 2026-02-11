@@ -30,6 +30,7 @@ const BEHAVIOR_PERIOD_OPTIONS = [30, 60, 90, 180, 365];
 let behaviorPeriodDays = null;
 
 let socialMarriage = null;
+let socialPets = null;
 let socialKids = null;
 const selectedChildAges = new Set(); // key: 0-2 | 3-5 | 6-12 | 13-16
 let selectedGender = null;
@@ -39,16 +40,18 @@ let userType = null; // null | 'mass' | 'affluent'
 const selectedBankProducts = new Set();
 
 const PLACEMENTS = [
-  { key: "banner_start", label: "Баннер на стартовой странице", desc: "Высокая видимость", cpm: 500, conversion: 0.015 },
-  { key: "banner_history", label: "Баннер в историях операций", desc: "Контекстный момент", cpm: 400, conversion: 0.0075 },
-  { key: "banner_success", label: "Баннер на экране успеха", desc: "После завершения действия", cpm: 450, conversion: 0.01 },
-  { key: "window_start", label: "Окно на старте", desc: "Максимальный охват", cpm: 600, conversion: 0.02 },
+  { key: "banner_carousel", label: "Баннер в карусели на главном экране", cpm: 1000, conversion: 0.012 },
+  { key: "fullscreen", label: "Fullscreen", cpm: 1500, conversion: 0.013 },
+  { key: "halfscreen", label: "Halfscreen", cpm: 2000, conversion: 0.02 },
+  { key: "banner_success", label: "Баннер-растяжка на экране успеха", cpm: 600, conversion: 0.0075 },
+  { key: "banner_history", label: "Баннер-растяжка в истории операций", cpm: 700, conversion: 0.009 },
+  { key: "monobanner_partners", label: "Монобаннер на витрине партнёров", cpm: 650, conversion: 0.0085 },
 ];
 
 const selectedPlacements = new Set();
 const placementImpressions = {}; // key -> number
 let campaignBudget = null; // number | null, rounded to 10000 on blur
-const placementAutoFromBudget = new Set(); // keys of placements whose impressions were set by "Распределить равномерно"
+const placementAutoFromBudget = new Set(); // keys of placements whose impressions were set by "По бюджету" or "По показам"
 
 const BANK_PRODUCT_GROUPS = [
   {
@@ -324,6 +327,7 @@ function getGeoFactor() {
 function getSocialNarrowness() {
   let n = 0;
   if (socialMarriage) n++;
+  if (socialPets) n++;
   if (socialKids) n++;
   n += selectedSpecialEmployment.size;
   n += selectedIncome.size;
@@ -423,7 +427,7 @@ function syncEmptyStates() {
   const hasPlatform = ios || android;
   const hasBehavior = selectedBehavior.size > 0;
   const agePresetActive = agePresetsContainer?.querySelector(".age-preset--active");
-  const hasDemo = !!selectedGender || !!agePresetActive || !!socialMarriage || !!socialKids || selectedChildAges.size > 0 || selectedSpecialEmployment.size > 0;
+  const hasDemo = !!selectedGender || !!agePresetActive || !!socialMarriage || !!socialPets || !!socialKids || selectedChildAges.size > 0 || selectedSpecialEmployment.size > 0;
   const hasUserType = !!userType;
   const hasMediaplanImpressions = PLACEMENTS.some((p) => (placementImpressions[p.key] ?? 0) > 0);
   const hasForecastData = hasRegions;
@@ -463,27 +467,7 @@ function syncEmptyStates() {
 }
 
 function syncSocialDefaultStates() {
-  const agePresetActive = agePresetsContainer?.querySelector(".age-preset--active");
-  const ageFrom = parseInt(ageFromSelect?.value || "18", 10);
-  const ageTo = parseInt(ageToSelect?.value || "65", 10);
-  const ageIsDefault = !agePresetActive && ageFrom === 18 && ageTo === 65;
-  const els = {
-    gender: document.getElementById("gender-default-state"),
-    marriage: document.getElementById("marriage-default-state"),
-    kids: document.getElementById("kids-default-state"),
-    age: document.getElementById("age-default-state"),
-    usertype: document.getElementById("usertype-default-state"),
-    income: document.getElementById("income-default-state"),
-    platform: document.getElementById("platform-default-state"),
-  };
-  if (els.gender) els.gender.classList.toggle("social-default-state--hidden", !!selectedGender);
-  if (els.marriage) els.marriage.classList.toggle("social-default-state--hidden", !!socialMarriage);
-  if (els.kids) els.kids.classList.toggle("social-default-state--hidden", !!socialKids);
-  if (els.age) els.age.classList.toggle("social-default-state--hidden", !ageIsDefault);
-  if (els.usertype) els.usertype.classList.toggle("social-default-state--hidden", !!userType);
-  if (els.income) els.income.classList.toggle("social-default-state--hidden", selectedIncome.size > 0);
-  const hasPlatform = platformGroup?.querySelector(".segmented-item--active");
-  if (els.platform) els.platform.classList.toggle("social-default-state--hidden", !!hasPlatform);
+  // Reserved for future use
 }
 
 function handleChange() {
@@ -1045,6 +1029,7 @@ if (genderGroup) {
 function isSocialDefault() {
   return (
     !socialMarriage &&
+    !socialPets &&
     !socialKids &&
     selectedSpecialEmployment.size === 0 &&
     selectedIncome.size === 0 &&
@@ -1072,6 +1057,19 @@ if (socialMarriageGroup) {
       b.classList.toggle("social-tile--selected", b.dataset.socialMarriage === socialMarriage);
       b.setAttribute("aria-checked", String(b.dataset.socialMarriage === socialMarriage));
     });
+    syncSocialResetVisibility();
+    handleChange();
+  });
+}
+
+const socialPetsGroup = document.getElementById("social-pets");
+if (socialPetsGroup) {
+  socialPetsGroup.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-social-pets]");
+    if (!btn) return;
+    socialPets = socialPets ? null : "yes";
+    btn.classList.toggle("social-tile--selected", !!socialPets);
+    btn.setAttribute("aria-pressed", String(!!socialPets));
     syncSocialResetVisibility();
     handleChange();
   });
@@ -1240,6 +1238,7 @@ bankProductsResetBtn?.addEventListener("click", () => {
 const socialResetBtn = document.getElementById("social-reset");
 socialResetBtn?.addEventListener("click", () => {
   socialMarriage = null;
+  socialPets = null;
   socialKids = null;
   selectedChildAges.clear();
   selectedSpecialEmployment.clear();
@@ -1247,6 +1246,7 @@ socialResetBtn?.addEventListener("click", () => {
   userType = null;
   selectedBankProducts.clear();
   socialMarriageGroup?.querySelectorAll("[data-social-marriage]").forEach((b) => b.classList.remove("social-tile--selected"));
+  socialPetsGroup?.querySelectorAll("[data-social-pets]").forEach((b) => b.classList.remove("social-tile--selected"));
   socialKidsGroup?.querySelectorAll("[data-social-kids]").forEach((b) => b.classList.remove("social-tile--selected"));
   childAgeBlock?.querySelectorAll("[data-child-age]").forEach((b) => b.classList.remove("social-tile--selected"));
   syncChildAgeBlockVisibility();
@@ -1295,7 +1295,8 @@ const BUDGET_ROUND = 10000;
 const mediaplanTbody = document.getElementById("mediaplan-tbody");
 const mediaplanBudgetInput = document.getElementById("mediaplan-budget-input");
 const mediaplanBudgetCheck = document.getElementById("mediaplan-budget-check");
-const mediaplanDistributeBtn = document.getElementById("mediaplan-distribute-btn");
+const mediaplanDistributeByBudgetBtn = document.getElementById("mediaplan-distribute-by-budget-btn");
+const mediaplanDistributeByImpressionsBtn = document.getElementById("mediaplan-distribute-by-impressions-btn");
 
 const MEDIAPLAN_PRESETS = [50000, 100000, 200000];
 
@@ -1430,7 +1431,10 @@ function syncBudgetCheck() {
 
 function syncBudgetDistributeButton() {
   const hasBudget = campaignBudget != null && campaignBudget > 0;
-  if (mediaplanDistributeBtn) mediaplanDistributeBtn.disabled = !hasBudget;
+  const hasPlacements = selectedPlacements.size > 0;
+  const enabled = hasBudget && hasPlacements;
+  if (mediaplanDistributeByBudgetBtn) mediaplanDistributeByBudgetBtn.disabled = !enabled;
+  if (mediaplanDistributeByImpressionsBtn) mediaplanDistributeByImpressionsBtn.disabled = !enabled;
 }
 
 function distributeByImpressions() {
@@ -1700,8 +1704,13 @@ mediaplanBudgetInput?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") e.preventDefault();
 });
 
-mediaplanDistributeBtn?.addEventListener("click", () => {
+mediaplanDistributeByBudgetBtn?.addEventListener("click", () => {
   distributeByCost();
+  syncBudgetCheck();
+});
+
+mediaplanDistributeByImpressionsBtn?.addEventListener("click", () => {
+  distributeByImpressions();
   syncBudgetCheck();
 });
 

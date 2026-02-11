@@ -11,14 +11,7 @@
       <main class="layout">
         <div class="main-col">
         <section class="panel panel-input">
-          <div class="panel-header-with-icon">
-            <img
-              src="/Users/dmitrymedvedev/.cursor/projects/Users-dmitrymedvedev-Desktop-Project-1/assets/image-476f0c74-826e-459f-b69f-9b8a66549dcc.png"
-              alt=""
-              class="forecast-icon-large"
-            />
-            <h2 class="panel-title">Настройка аудитории</h2>
-          </div>
+          <h2 class="panel-title">Настройка аудитории</h2>
           <div class="section-title section-title--campaign">Название кампании</div>
           <div class="field-group field-group--campaign">
             <input type="text" id="campaign-name" class="campaign-name-input" placeholder="Например: Ипотека · Москва · весна 2026" autocomplete="off" />
@@ -145,7 +138,6 @@
                       <button type="button" class="social-tile" data-gender="male">Мужчины</button>
                       <button type="button" class="social-tile" data-gender="female">Женщины</button>
                     </div>
-                    <span class="social-default-state" id="gender-default-state">Без ограничения</span>
                   </div>
                   <div class="social-col-block">
                     <div class="field-label">Возраст</div>
@@ -161,18 +153,25 @@
                       <label class="age-manual-label">До</label>
                       <select id="age-to" class="age-select"></select>
                     </div>
-                    <span class="social-default-state" id="age-default-state">Без ограничения</span>
                   </div>
                 </div>
                 <div class="social-demo-level social-demo-level--2">
-                  <div class="social-col-block">
-                    <div class="social-cell-label">Семейное положение</div>
-                    <span class="field-hint">По умолчанию — без ограничения</span>
-                    <div class="social-tiles social-tiles-single" id="social-marriage">
-                      <button type="button" class="social-tile" data-social-marriage="married">В браке</button>
-                      <button type="button" class="social-tile" data-social-marriage="single">Не в браке</button>
+                  <div class="social-marriage-pets-row">
+                    <div class="social-col-block">
+                      <div class="social-cell-label">Семейное положение</div>
+                      <span class="field-hint">По умолчанию — без ограничения</span>
+                      <div class="social-tiles social-tiles-single" id="social-marriage">
+                        <button type="button" class="social-tile" data-social-marriage="married">В браке</button>
+                        <button type="button" class="social-tile" data-social-marriage="single">Не в браке</button>
+                      </div>
                     </div>
-                    <span class="social-default-state" id="marriage-default-state">Без ограничения</span>
+                    <div class="social-col-block social-col-block--pets">
+                      <div class="social-cell-label">Питомцы</div>
+                      <span class="field-hint">По умолчанию — без ограничения</span>
+                      <div class="social-tiles social-tiles-single" id="social-pets">
+                        <button type="button" class="social-tile social-tile--toggle" data-social-pets="yes" aria-pressed="false">Есть питомцы</button>
+                      </div>
+                    </div>
                   </div>
                   <div class="social-col-block social-col-block--kids">
                   <div class="social-cell-label">Дети</div>
@@ -181,7 +180,6 @@
                     <button type="button" class="social-tile" data-social-kids="yes">Есть дети до 16</button>
                     <button type="button" class="social-tile" data-social-kids="no">Нет детей</button>
                   </div>
-                  <span class="social-default-state" id="kids-default-state">Без ограничения</span>
                   <div class="child-age-block" id="child-age-block" aria-disabled="true">
                     <div class="child-age-header">
                       <span class="child-age-label">Возраст детей</span>
@@ -219,7 +217,6 @@
                     <button type="button" class="social-tile" data-user-type="mass">Массовый</button>
                     <button type="button" class="social-tile" data-user-type="affluent">Премиум</button>
                   </div>
-                  <span class="social-default-state" id="usertype-default-state">Без ограничения</span>
                 </div>
                 <div class="social-col-block">
                   <div class="social-cell-label">Доход</div>
@@ -231,7 +228,6 @@
                     <button type="button" class="social-tile" data-social-income="high">Высокий</button>
                     <button type="button" class="social-tile" data-social-income="top">Очень высокий</button>
                   </div>
-                  <span class="social-default-state" id="income-default-state">Без ограничения</span>
                 </div>
                 <div class="social-col-block social-col-block--bank">
                   <div class="bank-products-header">
@@ -256,7 +252,8 @@
                   <input type="text" inputmode="numeric" id="mediaplan-budget-input" class="mediaplan-budget-input" placeholder="" aria-label="Бюджет кампании в рублях" />
                   <span class="mediaplan-budget-currency">₽</span>
                 </div>
-                <button type="button" class="mediaplan-distribute-btn" id="mediaplan-distribute-btn" disabled>Распределить равномерно</button>
+                <button type="button" class="mediaplan-distribute-btn" id="mediaplan-distribute-by-budget-btn" disabled>Распределить по бюджету</button>
+                <button type="button" class="mediaplan-distribute-btn" id="mediaplan-distribute-by-impressions-btn" disabled>Разделить по показам</button>
               </div>
               <div class="mediaplan-budget-check" id="mediaplan-budget-check" aria-live="polite" hidden></div>
             </div>

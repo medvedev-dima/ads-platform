@@ -103,21 +103,6 @@ body {
   font-weight: 600;
 }
 
-.panel-header-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.forecast-icon-large {
-  display: none;
-}
-
-.panel-header-with-icon .panel-title {
-  margin: 0 0 8px;
-}
-
 /* Вертикальный ритм: заголовок→контент 12–16px, контент→helper 6–8px, helper→следующий блок 16–24px */
 .section-title {
   font-size: 13px;
@@ -1056,6 +1041,17 @@ body.is-dragging-tiles .behavior-tile {
   margin-bottom: 10px;
 }
 
+.social-marriage-pets-row {
+  display: flex;
+  gap: 20px 32px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.social-marriage-pets-row .social-col-block {
+  margin-bottom: 0;
+}
+
 .social-demo-level {
   display: flex;
   flex-wrap: wrap;
@@ -1080,6 +1076,10 @@ body.is-dragging-tiles .behavior-tile {
 .social-col-block:last-child,
 .social-demo-level .social-col-block:last-child {
   margin-bottom: 0;
+}
+
+.social-demo-level--2 .social-col-block--kids {
+  flex-basis: 100%;
 }
 
 .social-col-block--kids .social-cell-label {
